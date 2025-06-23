@@ -1,6 +1,11 @@
 # UefiSeven
 ## Summary
 Special version only for set GOP resolution before use CSMWrap for use Windows 7 or WinXP 32-bit and Longhorn winload.exe 5472.5
+![alt text](https://github.com/Gelip/u7nwbm/blob/master/1_u7.png?raw=true)
+![alt text](https://github.com/Gelip/u7nwbm/blob/master/2_CSMWrap.png?raw=true)
+![alt text](https://github.com/Gelip/u7nwbm/blob/master/3_w7_ml.png?raw=true)
+![alt text](https://github.com/Gelip/u7nwbm/blob/master/4_w7_vga_1.png?raw=true)
+![alt text](https://github.com/Gelip/u7nwbm/blob/master/5_w7_vga_2.png?raw=true)
 
 ## Usage instructions
 Run from UEFI Shell on FAT32 HDD or USB stick
