@@ -1,5 +1,6 @@
 /** @file
 
+  Copyright (c) 2025, Gelip
   Copyright (c) 2024, Andri Kurniawan
   Copyright (c) 2020, Seungjoo Kim
   Copyright (c) 2016, Dawid Ciecierski
@@ -227,16 +228,16 @@ IsInt10hHandlerDefined (
   Int10hHandler = (Int10hEntry->Segment << 4) + Int10hEntry->Offset;
 
   if ((Int10hHandler >= VGA_ROM_ADDRESS) && (Int10hHandler < (VGA_ROM_ADDRESS + VGA_ROM_SIZE))) {
-    PrintDebug (L"Int10h IVT entry points at location within VGA ROM memory area (%04x:%04x)\n",
+    PrintDebug (L"Int10h IVT entry points within VGA ROM memory area (%04x:%04x)\n",
       Int10hEntry->Segment, Int10hEntry->Offset);
 
     Opcode = *((UINT8 *)Int10hHandler);
     if ((Opcode == PROTECTIVE_OPCODE_1) || (Opcode == PROTECTIVE_OPCODE_2)) {
-      PrintDebug (L"First Int10h handler instruction at %04x:%04x (%02x) not valid, rejecting handler\n",
+      PrintDebug (L"First Int10h handler inst. at %04x:%04x (%02x) not valid, rejecting handler\n",
         Int10hEntry->Segment, Int10hEntry->Offset, Opcode);
       return FALSE;
     } else {
-      PrintDebug (L"First Int10h handler instruction at %04x:%04x (%02x) valid, accepting handler\n",
+      PrintDebug (L"First Int10h handler ins. at %04x:%04x (%02x) valid, accepting handler\n",
         Int10hEntry->Segment, Int10hEntry->Offset, Opcode);
       return TRUE;
     }
@@ -588,12 +589,12 @@ ReadConfig (
   }
 
   //
-  // Preferred UefiSeven.ini, instead of bootx64.ini / bootmgfw.ini.
+  // Preferred u7.ini, instead of bootx64.ini / bootmgfw.ini.
   //
   // Check if <MyName>.ini exists
   //Status = ChangeExtension (mEfiFilePath, L"ini", (VOID **)&FilePath);
-  // Check if UefiSeven.ini exists
-  Status = GetFilenameInSameDirectory (mEfiFilePath, L"UefiSeven.ini", (VOID **)&FilePath);
+  // Check if u7.ini exists
+  Status = GetFilenameInSameDirectory (mEfiFilePath, L"u7.ini", (VOID **)&FilePath);
 
   if (EFI_ERROR (Status) || (FilePath == NULL) || !FileExists (mVolumeRoot, FilePath)) {
     if (FilePath != NULL) {
@@ -684,7 +685,7 @@ UefiMain (
   EFI_STATUS              IvtAllocationStatus;
   EFI_STATUS              IvtFreeStatus;
   EFI_INPUT_KEY           Key;
-  CHAR16                  *LaunchPath = NULL;
+//  CHAR16                  *LaunchPath = NULL;
   CHAR16                  *LogFilePath = NULL;
   CHAR16                  *VerboseFilePath = NULL;
   CHAR16                  *SkipFilePath = NULL;
@@ -805,12 +806,12 @@ UefiMain (
     }
   }
 
-  PrintDebug (L"UefiSeven %s\n", VERSION);
-
-  if (mVerboseMode) {
-    PrintDebug (L"You are running in verbose mode, press Enter to continue\n");
-    WaitForEnter (FALSE);
-  }
+//  PrintDebug (L"UefiSeven %s\n", VERSION);
+//
+//  if (mVerboseMode) {
+//    PrintDebug (L"You are running in verbose mode, press Enter to continue\n");
+//    WaitForEnter (FALSE);
+//  }
 
   //
   // Show animated logo.
@@ -828,11 +829,11 @@ UefiMain (
   }
 
   if (!MatchCurrentResolution (mResHeight, mResWidth)) {
-    PrintError (L"Current display does not seem to support changing to your preferred resolution\n");
-    PrintError (L"which is the minimum requirement of Windows 7.\n");
-    PrintError (L"It is likely that Windows might fail to boot even with the handler installed.\n");
-    PrintError (L"Press Enter to try a new 'hack' that will force the display driver to work.\n");
-    PrintError (L"The display might be glitchy but it will be able to provide a workable screen.\n");
+    PrintError (L"Current display does not seem to support changing to your preferred \n");
+    PrintError (L"resolution. It is likely that Windows might fail to boot even with \n");
+    PrintError (L"the handler installed.\n");
+    PrintError (L"Press Enter to try hack that will force the display driver to work.\n");
+    PrintError (L"Display might be glitchy but screen workable.\n");
     if (!mSkipErrors) {
       WaitForEnter (FALSE);
     }
@@ -935,58 +936,6 @@ UefiMain (
   }
 
   Exit:
-
-  //
-  // Check if we can chainload the Windows Boot Manager.
-  //
-  if (mEfiFilePath != NULL) {
-    Status = ChangeExtension (mEfiFilePath, L"original.efi", (VOID **)&LaunchPath);
-  } else {
-    Status = EFI_NOT_FOUND;
-  }
-  if (!EFI_ERROR (Status) && FileExists (mVolumeRoot, LaunchPath)) {
-    PrintDebug (L"Found Windows Boot Manager at '%s'\n", LaunchPath);
-  } else {
-    PrintError (L"Could not find Windows Boot Manager at '%s'\n", LaunchPath);
-    //PrintError (L"Rename the original bootx64.efi from efi\\boot\\ to bootx64.original.efi\n");
-    PrintError (L"Press Enter to continue.\n");
-    WaitForEnter (FALSE);
-  }
-
-  //
-  // Make it possible to enter Windows Boot Manager.
-  //
-  if (!mVerboseMode) {
-    Status = gST->ConIn->ReadKeyStroke (gST->ConIn, &Key);
-    if (!EFI_ERROR (Status) && Key.ScanCode == SCAN_F8) {
-      PrintError (L"F8 keypress detected, switching to text mode\n");
-      PrintError (L"Press Enter to continue and then immediately press F8 again\n");
-      WaitForEnterAndStall (FALSE);
-    }
-  } else {
-    // For debug mode we should also detect F8 and then wait a little
-    // to allow user to fill key buffer with F8 in time but this
-    // waiting will be done by the Lauch method.
-  }
-
-  if (LaunchPath != NULL) {
-    Launch (LaunchPath, mVerboseMode ? &WaitForEnterAndStall : NULL);
-    FreePool (LaunchPath);
-  }
-
-  if (mEfiFilePath != NULL) {
-    FreePool (mEfiFilePath);
-  }
-
-  if (mLogToFile) {
-    if (mLogFileHandle != NULL) {
-      mLogFileHandle->Close (mLogFileHandle);
-    }
-  }
-
-  if (mVolumeRoot != NULL) {
-    mVolumeRoot->Close (mVolumeRoot);
-  }
 
   return EFI_SUCCESS;
 }
