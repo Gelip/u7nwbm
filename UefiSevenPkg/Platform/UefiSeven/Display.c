@@ -387,6 +387,7 @@ PrintVideoInfo (
     return;
   }
 
+  PrintDebug (L"UefiSeven no load Windows Boot Manager fix by Gelip 2025\n");
   PrintDebug (L"Current mode:\n");
   PrintDebug (L"  HorizontalResolution = %u\n", mDisplayInfo.HorizontalResolution);
   PrintDebug (L"  VerticalResolution = %u\n", mDisplayInfo.VerticalResolution);
