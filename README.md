@@ -1,38 +1,26 @@
 # UefiSeven
 ## Summary
-UefiSeven is an efi module that enables Windows 7 to boot under UEFI Class 3 systems.
-
-Windows 7 does not fully support UEFI and relies on legacy BIOS interrupt 10 (Int10h) during initial graphics initialization.
-On computers without proper legacy support Windows 7 might freeze on 'Starting Windows' screen or fail with error code 0xc000000d.
-Some motherboards have 'CSM' or 'legacy' boot options to fix this problem but it is getting increasingly rare as Intel decided to get rid of legacy BIOS support by 2020, and the option is virtually non-existent on consumer mobile devices.
-UefiSeven installs a minimal Int10h handler in the memory before Windows boots up so that the boot process do not fail because of the missing interrupt.
-
-UefiSeven also contains a hack to enable screen output on hardwares that do not natively support 1024x768 as is needed by Windows Installer.
-Int10h handler comes with a macro, when enabled before compiling, that will enable serial console output which can be used to debug the handler itself.
+Special version only for set GOP resolution before use CSMWrap for use Windows 7 or WinXP 32-bit and Longhorn winload.exe 5472.5
 
 ## Usage instructions
-1. Prepare Windows 7 installation USB Drive
-2. Rename bootx64.efi at (UsbDrive)\EFI\Boot\ to bootx64.original.efi
-3. Unpack bootx64.efi from UefiSeven archive and copy it to (UsbDrive)\EFI\Boot\
-4. Finish initial installation and wait for reboot prompt
-5. Power off computer
-6. Rename bootmgfw.efi at (HDD)\EFI\Microsoft\Boot\ to bootmgfw.original.efi
-7. Copy UefiSeven bootx64.efi to (HDD)\EFI\Microsoft\Boot\bootmgfw.efi using EFI shell
+Run from UEFI Shell on FAT32 HDD or USB stick
 
 ## Settings
-Settings can be applied by placing UefiSeven.ini file in the directory containing the main efi file.
-Refer to the sample configuration file for available options.
+Settings can be applied by placing u7.ini file in the directory containing the main efi file. Use verbose enabled and 1024x768 or native monitor resolution:
+verbose=1         ; enable verbose mode
+resheight=1024    ; preferred height
+reswidth=768      ; preferred width
 
-## Build instructions (Tested with edk2-stable202405)
-    git clone https://github.com/Andri-K/uefiseven.git
-    (Copy or symlink UefiSevenPkg and IntelFrameworkPkg to the edk2 directory)
-    (Change directory to edk2)
-    source ./edksetup.sh
-    make -C BaseTools/
-    ./UefiSevenPkg/Platform/UefiSeven/Int10hHandler.sh ; Regenerate Int10h assembly. Optional
-    build -a X64 -t GCC49 -b RELEASE -p UefiSevenPkg/UefiSevenPkg.dsc
-    
-## Credits
-* Original VgaShim project
-* OVMF project
-* EDK II project
+## Build instructions (Tested with edk2-stable202108)
+wget https://github.com/tianocore/edk2/releases/download/edk2-stable202108/edk2-edk2-stable202108.zip
+wget https://github.com/tianocore/edk2/releases/download/edk2-stable202108/submodule-BaseTools-Source-C-BrotliCompress-brotli.zip
+wget https://github.com/tianocore/edk2/releases/download/edk2-stable202108/submodule-MdeModulePkg-Library-BrotliCustomDecompressLib-brotli.zip
+7z x edk2-edk2-stable202108.zip
+mv edk2-edk2-stable202108 MyWorkspace
+7z x -oMyWorkspace submodule-BaseTools-Source-C-BrotliCompress-brotli.zip
+7z x -oMyWorkspace submodule-MdeModulePkg-Library-BrotliCustomDecompressLib-brotli.zip
+7z x -yoMyWorkspace uefiseven-1.31-1.zip
+cd MyWorkspace
+make -C BaseTools
+. edksetup.sh
+build -a X64 -t GCC49 -b RELEASE -p UefiSevenPkg/UefiSevenPkg.dsc --conf=UefiSevenPkg/Conf
